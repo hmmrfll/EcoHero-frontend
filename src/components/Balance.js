@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Удален useLocation
 import { getUserByChatId } from '../services/userService';
 
 const BalanceContainer = styled.div`
@@ -135,6 +135,48 @@ const Balance = ({ chatId, setBalance, language, animate, setAnimate }) => {
   const [showBalanceAnimation, setShowBalanceAnimation] = useState(false);
   const [showDonatedAnimation, setShowDonatedAnimation] = useState(false);
 
+  const animateBalanceChange = useCallback((start, end) => {
+    const duration = 2000; // Продолжительность анимации в миллисекундах
+    const startTime = performance.now();
+
+    const step = (currentTime) => {
+      const progress = (currentTime - startTime) / duration;
+      const value = progress * (end - start) + parseFloat(start);
+      setDisplayBalance(formatBalance(value, language));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        setDisplayBalance(formatBalance(parseFloat(end), language));
+      }
+    };
+
+    requestAnimationFrame(step);
+  }, [language]);
+
+  const animateDonatedChange = useCallback((start, end) => {
+    const duration = 2000; // Продолжительность анимации в миллисекундах
+    const startTime = performance.now();
+
+    const step = (currentTime) => {
+      const progress = (currentTime - startTime) / duration;
+      const value = progress * (end - start) + parseFloat(start);
+      setUserData((prevData) => ({
+        ...prevData,
+        donated: formatBalance(value, language),
+      }));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        setUserData((prevData) => ({
+          ...prevData,
+          donated: formatBalance(parseFloat(end), language),
+        }));
+      }
+    };
+
+    requestAnimationFrame(step);
+  }, [language]);
+
   const fetchData = useCallback(async (animate) => {
     try {
       const data = await getUserByChatId(chatId);
@@ -171,7 +213,7 @@ const Balance = ({ chatId, setBalance, language, animate, setAnimate }) => {
     } catch (error) {
       setUserData({ balance: 'Error', donated: 'Error', echaCoins: 'Error', profilePhoto: '', chatId: null });
     }
-  }, [chatId, language, setBalance]);
+  }, [chatId, language, setBalance, animateBalanceChange, animateDonatedChange]);
 
   useEffect(() => {
     if (chatId) {
@@ -207,48 +249,6 @@ const Balance = ({ chatId, setBalance, language, animate, setAnimate }) => {
       setShowDonatedAnimation(false);
     }
   }, [userData.donated, showDonatedAnimation]);
-
-  const animateBalanceChange = (start, end) => {
-    const duration = 2000; // Продолжительность анимации в миллисекундах
-    const startTime = performance.now();
-
-    const step = (currentTime) => {
-      const progress = (currentTime - startTime) / duration;
-      const value = progress * (end - start) + parseFloat(start);
-      setDisplayBalance(formatBalance(value, language));
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else {
-        setDisplayBalance(formatBalance(parseFloat(end), language));
-      }
-    };
-
-    requestAnimationFrame(step);
-  };
-
-  const animateDonatedChange = (start, end) => {
-    const duration = 2000; // Продолжительность анимации в миллисекундах
-    const startTime = performance.now();
-
-    const step = (currentTime) => {
-      const progress = (currentTime - startTime) / duration;
-      const value = progress * (end - start) + parseFloat(start);
-      setUserData((prevData) => ({
-        ...prevData,
-        donated: formatBalance(value, language),
-      }));
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else {
-        setUserData((prevData) => ({
-          ...prevData,
-          donated: formatBalance(parseFloat(end), language),
-        }));
-      }
-    };
-
-    requestAnimationFrame(step);
-  };
 
   const formatBalance = (number, lang) => {
     return lang === 'ru' ? parseFloat(number).toFixed(2) : parseFloat(number).toFixed(4);
