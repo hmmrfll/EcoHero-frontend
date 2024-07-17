@@ -1,4 +1,4 @@
-const serverUrl = 'http://localhost:5173';
+const serverUrl = 'https://e568-37-212-26-36.ngrok-free.app';
 
 const getUserByChatId = async (chatId) => {
   const response = await fetch(`${serverUrl}/api/users/${chatId}`);
