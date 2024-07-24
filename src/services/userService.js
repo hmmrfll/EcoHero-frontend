@@ -1,4 +1,4 @@
-const serverUrl = 'https://94f1-46-216-179-135.ngrok-free.app'
+const serverUrl = 'https://fe3b-178-122-190-194.ngrok-free.app'
 
 const getUserByChatId = async chatId => {
 	const response = await fetch(`${serverUrl}/api/users/${chatId}`)
